@@ -232,9 +232,12 @@ public class MainFrame extends JFrame {
         avgLabel = new JLabel("平均分數: 0.0");
         stdDevLabel = new JLabel("標準差: 0.0");
 
+        JButton chartButton = new JButton("成績分佈圖");
+
         topPanel.add(new JLabel("分數 < "));
         topPanel.add(scoreField);
         topPanel.add(filterButton);
+        topPanel.add(chartButton); // New Button
         topPanel.add(Box.createHorizontalStrut(20));
         topPanel.add(avgLabel);
         topPanel.add(Box.createHorizontalStrut(20));
@@ -256,6 +259,60 @@ public class MainFrame extends JFrame {
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "數字格式錯誤");
             }
+        });
+
+        chartButton.addActionListener(e -> {
+            java.util.Map<Integer, Integer> dist = studentDAO.getScoreDistribution();
+            if (dist.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "無數據");
+                return;
+            }
+
+            JDialog dialog = new JDialog(this, "成績分佈圖", true);
+            dialog.setSize(800, 500);
+            dialog.setLocationRelativeTo(this);
+
+            JPanel chartPanel = new JPanel(new GridLayout(1, 0, 5, 5)); // Horizontal grid
+            chartPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            // Find max for scaling
+            int maxCount = 0;
+            for (int count : dist.values()) {
+                if (count > maxCount)
+                    maxCount = count;
+            }
+
+            for (java.util.Map.Entry<Integer, Integer> entry : dist.entrySet()) {
+                int range = entry.getKey();
+                int count = entry.getValue();
+
+                JPanel col = new JPanel(new BorderLayout());
+
+                // Top: Count
+                JLabel countLabel = new JLabel(String.valueOf(count), SwingConstants.CENTER);
+                col.add(countLabel, BorderLayout.NORTH);
+
+                // Center: Vertical Bar
+                JProgressBar bar = new JProgressBar(SwingConstants.VERTICAL, 0, maxCount);
+                bar.setValue(count);
+                bar.setStringPainted(true);
+                bar.setString(""); // Hide default string in bar as it might look weird vertical
+                // We show count on top instead
+                col.add(bar, BorderLayout.CENTER);
+
+                // Bottom: Range
+                JLabel rangeLabel = new JLabel(String.format("%d-%d", range, range + 9), SwingConstants.CENTER);
+                // Simplify label for space
+                if (range == 100)
+                    rangeLabel.setText("100"); // Edge case if any
+
+                col.add(rangeLabel, BorderLayout.SOUTH);
+
+                chartPanel.add(col);
+            }
+
+            dialog.add(new JScrollPane(chartPanel));
+            dialog.setVisible(true);
         });
 
         return panel;

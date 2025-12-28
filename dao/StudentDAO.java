@@ -124,4 +124,31 @@ public class StudentDAO {
             e.printStackTrace();
         }
     }
+
+    public java.util.Map<Integer, Integer> getScoreDistribution() {
+        java.util.Map<Integer, Integer> distribution = new java.util.LinkedHashMap<>();
+        // Initialize 0-100 ranges for safety (optional, but ensures all keys exist)
+        for (int i = 0; i <= 10; i++) {
+            distribution.put(i * 10, 0);
+        }
+
+        String sql = "SELECT (total_score / 10) * 10 as range_key, COUNT(*) as count " +
+                "FROM Students " +
+                "GROUP BY (total_score / 10) * 10 " +
+                "ORDER BY range_key";
+
+        try (Connection conn = DBConnection.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                int rangeCtx = rs.getInt("range_key");
+                int count = rs.getInt("count");
+                distribution.put(rangeCtx, count);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return distribution;
+    }
 }
