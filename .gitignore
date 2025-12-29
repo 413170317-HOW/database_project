@@ -3,7 +3,8 @@
 *.log
 *.ctxt
 .mtj.tmp/
-*.jar
+# *.jar
+!lib/jars/*.jar
 *.war
 *.nar
 *.ear
@@ -15,7 +16,7 @@
 .classpath
 .project
 .settings/
-.vscode/
+# .vscode/
 bin/
 
 # Other
